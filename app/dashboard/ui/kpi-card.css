@@ -1,0 +1,34 @@
+.eco-kpi-card {
+  background-color: var(--eco-card);
+  border: 1px solid var(--eco-border);
+  border-radius: 10px;
+  padding: 1.5rem;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.eco-kpi-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 0 15px var(--eco-primary);
+}
+
+.eco-kpi-card-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.eco-kpi-card-icon {
+  color: var(--eco-primary);
+  margin-right: 1rem;
+}
+
+.eco-kpi-card-title {
+  font-size: 1.1rem;
+  color: var(--eco-secondary);
+}
+
+.eco-kpi-card-value {
+  font-size: 2rem;
+  font-weight: bold;
+  color: var(--eco-text);
+}

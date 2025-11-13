@@ -4,7 +4,7 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* Updated theme for dark logistics dashboard with neon green accent */
+  /* Updated theme for dark Eco-Trade dashboard with neon green accent */
   --background: #0b1a22;
   --foreground: #ffffff;
   --card: #102a35;
@@ -122,6 +122,8 @@
   }
   body {
     @apply bg-background text-foreground;
+    background-image: radial-gradient(circle at 25px 25px, var(--border) 1px, transparent 0);
+    background-size: 50px 50px;
   }
 
   /* Add glow effects for neon accent */
@@ -132,4 +134,20 @@
   .glow-accent-lg {
     box-shadow: 0 0 40px rgba(0, 255, 156, 0.15);
   }
+
+  .text-glow {
+    text-shadow: 0 0 8px rgba(0, 255, 156, 0.3);
+  }
 }
+
+@keyframes ping-slow {
+  75%, 100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+.animate-ping-slow {
+  animation: ping-slow 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+

@@ -10,15 +10,27 @@ import SustainabilityDashboard from "@/components/sustainability-dashboard"
 import AuditTrail from "@/components/audit-trail"
 import ReviewWorkflow from "@/components/review-workflow"
 
-export default function Page() {
+interface FileUpload {
+  id: string
+  name: string
+  progress: number
+  status: "uploading" | "analyzing" | "complete" | "error"
+  confidence: number
+}
+
+import { AnalysisResult } from "@/lib/types";
+
+export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState("dashboard")
+  const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null)
+  const [fileUpload, setFileUpload] = useState<FileUpload[]>([])
 
   const renderContent = () => {
     switch (activeTab) {
       case "upload":
-        return <UploadInterface />
+        return <UploadInterface setAnalysisResult={setAnalysisResult} setFileUpload={setFileUpload} fileUpload={fileUpload} />
       case "workflow":
-        return <WorkflowDashboard />
+        return <WorkflowDashboard analysisResult={analysisResult} />
       case "chat":
         return <AgentChat />
       case "sustainability":
@@ -53,7 +65,7 @@ function MainDashboard({ setActiveTab }: { setActiveTab: (tab: string) => void }
   return (
     <div className="p-8">
       <div className="mb-12">
-        <h1 className="text-4xl font-bold text-white mb-2">Eco-Trade</h1>
+        <h1 className="text-4xl font-bold text-white mb-2">Eco-Trade Dashboard</h1>
         <p className="text-muted-foreground">Multi-agent workflow orchestration platform</p>
       </div>
 

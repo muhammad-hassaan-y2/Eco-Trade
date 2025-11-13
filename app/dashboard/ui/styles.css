@@ -1,0 +1,37 @@
+:root {
+  --eco-bg: #0a192f;
+  --eco-primary: #00f5d4;
+  --eco-secondary: #00b4d8;
+  --eco-text: #e6f1ff;
+  --eco-card: #172a45;
+  --eco-border: #00f5d4;
+}
+
+.eco-dashboard {
+  background-color: var(--eco-bg);
+  color: var(--eco-text);
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  min-height: 100vh;
+}
+
+.eco-header {
+  padding: 2rem;
+  border-bottom: 1px solid var(--eco-border);
+  text-align: center;
+}
+
+.eco-header h1 {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: var(--eco-primary);
+  text-shadow: 0 0 10px var(--eco-primary);
+}
+
+.eco-header p {
+  font-size: 1.2rem;
+  color: var(--eco-secondary);
+}
+
+.eco-main {
+  padding: 2rem;
+}

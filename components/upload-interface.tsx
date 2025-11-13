@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { ChangeEvent } from "react"
 import { Upload, Check, AlertCircle, Zap } from "lucide-react"
 
 interface FileUpload {
@@ -11,12 +11,73 @@ interface FileUpload {
   confidence: number
 }
 
-export default function UploadInterface() {
-  const [files, setFiles] = useState<FileUpload[]>([
-    { id: "1", name: "shipment-2024-001.pdf", progress: 100, status: "complete", confidence: 98.5 },
-    { id: "2", name: "compliance-check.pdf", progress: 65, status: "analyzing", confidence: 0 },
-    { id: "3", name: "invoice-bundle.zip", progress: 30, status: "uploading", confidence: 0 },
-  ])
+import { AnalysisResult } from "@/lib/types";
+
+interface UploadInterfaceProps {
+  setAnalysisResult: (result: AnalysisResult | null) => void;
+  setFileUpload: (files: FileUpload[]) => void;
+  fileUpload: FileUpload[];
+}
+
+export default function UploadInterface({ setAnalysisResult, setFileUpload, fileUpload }: UploadInterfaceProps) {
+  const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    const newFile: FileUpload = {
+      id: Date.now().toString(),
+      name: file.name,
+      progress: 0,
+      status: "uploading",
+      confidence: 0,
+    }
+    setFileUpload([newFile])
+
+    const formData = new FormData()
+    formData.append("file", file)
+
+    try {
+      // Update status to analyzing
+      setFileUpload(
+        fileUpload.map((f) =>
+          f.id === newFile.id ? { ...f, status: "analyzing", progress: 50 } : f
+        )
+      )
+
+      const response = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      })
+
+      if (!response.ok) {
+        throw new Error("Upload failed")
+      }
+
+      const result: AnalysisResult = await response.json()
+      setAnalysisResult(result)
+
+      // Update file status to complete
+      setFileUpload(
+        fileUpload.map((f) =>
+          f.id === newFile.id
+            ? {
+                ...f,
+                status: "complete",
+                progress: 100,
+                confidence: result.analysis.confidence,
+              }
+            : f
+        )
+      )
+    } catch (error) {
+      console.error(error)
+      setFileUpload(
+        fileUpload.map((f) =>
+          f.id === newFile.id ? { ...f, status: "error" } : f
+        )
+      )
+    }
+  }
 
   return (
     <div className="p-8">
@@ -30,16 +91,19 @@ export default function UploadInterface() {
         <Upload className="w-12 h-12 text-primary mx-auto mb-4" />
         <h3 className="text-xl font-semibold text-white mb-2">Drop files here</h3>
         <p className="text-muted-foreground mb-4">or click to browse</p>
-        <div className="flex justify-center gap-2 text-xs">
-          <span className="px-3 py-1 rounded bg-muted text-muted-foreground">PDF</span>
-          <span className="px-3 py-1 rounded bg-muted text-muted-foreground">ZIP</span>
-          <span className="px-3 py-1 rounded bg-muted text-muted-foreground">Image</span>
-        </div>
+        <input type="file" className="hidden" id="file-upload" onChange={handleFileChange} />
+        <label htmlFor="file-upload" className="cursor-pointer">
+          <div className="flex justify-center gap-2 text-xs">
+            <span className="px-3 py-1 rounded bg-muted text-muted-foreground">PDF</span>
+            <span className="px-3 py-1 rounded bg-muted text-muted-foreground">ZIP</span>
+            <span className="px-3 py-1 rounded bg-muted text-muted-foreground">Image</span>
+          </div>
+        </label>
       </div>
 
       {/* File List */}
       <div className="space-y-3">
-        {files.map((file) => (
+        {fileUpload.map((file) => (
           <FileItem key={file.id} file={file} />
         ))}
       </div>
@@ -48,9 +112,8 @@ export default function UploadInterface() {
       <div className="mt-8 bg-card border border-border rounded-lg p-6">
         <h3 className="text-lg font-semibold text-white mb-4">Suggested Corrections</h3>
         <div className="space-y-3">
-          <CorrectionItem title="Missing Certificate" description="Add HSE certificate for compliance" />
-          <CorrectionItem title="Invalid Route" description="Suggested optimal route saves 2.5 hours" />
-          <CorrectionItem title="Weight Variance" description="Declared weight exceeds by 150kg" />
+          {/* This section will be updated when analysisResult is available in the parent component */}
+          <p className="text-muted-foreground">Upload a file to see suggestions.</p>
         </div>
       </div>
     </div>
@@ -83,18 +146,6 @@ function FileItem({ file }: { file: FileUpload }) {
       </div>
       <div className="w-full bg-muted rounded-full h-2">
         <div className="bg-primary h-2 rounded-full transition-all" style={{ width: `${file.progress}%` }} />
-      </div>
-    </div>
-  )
-}
-
-function CorrectionItem({ title, description }: { title: string; description: string }) {
-  return (
-    <div className="flex items-start gap-4 p-4 rounded-lg bg-muted/50 border border-border hover:border-secondary transition-colors">
-      <AlertCircle className="w-5 h-5 text-secondary shrink-0 mt-1" />
-      <div className="flex-1">
-        <p className="font-medium text-white">{title}</p>
-        <p className="text-sm text-muted-foreground">{description}</p>
       </div>
     </div>
   )

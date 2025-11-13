@@ -27,14 +27,11 @@ export class GeminiDocumentAgent {
   private model;
 
   constructor() {
-    this.model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+    this.model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
   }
 
-  async analyzeDocument(documentText: string, documentType: string): Promise<DocumentAnalysis> {
-    const prompt = `You are a customs document analysis AI agent. Analyze this ${documentType} and extract structured data.
-
-Document:
-${documentText}
+  async analyzeDocument(fileBuffer: string, mimeType: string): Promise<DocumentAnalysis> {
+    const prompt = `You are a customs document analysis AI agent. Analyze this document and extract structured data.
 
 Extract and return ONLY valid JSON (no markdown, no explanation) with this structure:
 {
@@ -59,8 +56,15 @@ Extract and return ONLY valid JSON (no markdown, no explanation) with this struc
   "recommendations": ["array of actions needed"]
 }`;
 
+    const fileData = {
+      inlineData: {
+        data: fileBuffer,
+        mimeType,
+      },
+    };
+
     try {
-      const result = await this.model.generateContent(prompt);
+      const result = await this.model.generateContent([prompt, fileData]);
       const response = await result.response;
       const text = response.text();
       
@@ -75,7 +79,7 @@ Extract and return ONLY valid JSON (no markdown, no explanation) with this struc
     }
   }
 
-  async checkCompliance(shipmentData: any): Promise<{
+  async checkCompliance(shipmentData: DocumentAnalysis['extractedData']): Promise<{
     compliant: boolean;
     issues: string[];
     severity: 'low' | 'medium' | 'high';
@@ -114,7 +118,7 @@ Return ONLY valid JSON:
     }
   }
 
-  async calculateSustainability(shipmentData: any): Promise<{
+  async calculateSustainability(shipmentData: DocumentAnalysis['extractedData']): Promise<{
     score: number;
     carbonFootprint: number;
     recommendations: string[];
@@ -150,6 +154,60 @@ Return ONLY valid JSON:
       console.error('Sustainability check error:', error);
       throw error;
     }
+  }
+
+  async classifyDocument(fileBuffer: string, mimeType: string): Promise<{ documentType: string }> {
+    const prompt = `You are an AI document classifier. Your task is to identify the type of the document from the following list:
+- Commercial Invoice
+- Packing List
+- Bill of Lading
+- Certificate of Origin
+- Other
+
+Analyze the document and return ONLY a valid JSON object with the key "documentType" and the value as one of the types from the list. For example:
+{
+  "documentType": "Commercial Invoice"
+}`;
+
+    const fileData = {
+      inlineData: {
+        data: fileBuffer,
+        mimeType,
+      },
+    };
+
+    try {
+      const result = await this.model.generateContent([prompt, fileData]);
+      const response = await result.response;
+      const text = response.text();
+      
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) throw new Error('No JSON found in response');
+      
+      return JSON.parse(jsonMatch[0]);
+    } catch (error) {
+      console.error('Gemini classification error:', error);
+      throw error;
+    }
+  }
+
+  async analyzeCommercialInvoice(fileBuffer: string, mimeType: string): Promise<DocumentAnalysis> {
+    const prompt = `You are a customs document analysis AI agent specialized in Commercial Invoices. Analyze this document and extract structured data.`;
+    return this.analyzeDocument(fileBuffer, mimeType);
+  }
+
+  async analyzePackingList(fileBuffer: string, mimeType: string): Promise<DocumentAnalysis> {
+    const prompt = `You are a customs document analysis AI agent specialized in Packing Lists. Analyze this document and extract structured data.`;
+    return this.analyzeDocument(fileBuffer, mimeType);
+  }
+
+  async analyzeBillOfLading(fileBuffer: string, mimeType: string): Promise<DocumentAnalysis> {
+    const prompt = `You are a customs document analysis AI agent specialized in Bills of Lading. Analyze this document and extract structured data.`;
+    return this.analyzeDocument(fileBuffer, mimeType);
+  }
+
+  generateContent(prompt: string): Promise<any> {
+    return this.model.generateContent(prompt);
   }
 }
 

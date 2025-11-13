@@ -80,7 +80,7 @@ export default function SustainabilityDashboard() {
         <div className="bg-card border border-border rounded-lg p-6">
           <h3 className="text-lg font-semibold text-white mb-6">Eco-Certifications</h3>
           <div className="space-y-3">
-            {["ISO 14001", "Carbon Trust", "Green Logistics", "EcoTransport", "Net Zero Ready"].map((cert, i) => (
+            {["ISO 14001", "Carbon Trust", "Green Eco-Trade", "EcoTransport", "Net Zero Ready"].map((cert, i) => (
               <div key={i} className="flex items-center gap-3 p-4 rounded-lg bg-muted/50 border border-border">
                 <div className="w-3 h-3 rounded-full bg-primary" />
                 <p className="text-white font-medium">{cert}</p>
