@@ -3,8 +3,12 @@
 import { DocumentAnalysis } from './types';
 import { GeminiDocumentAgent } from './gemini-agent';
 
+export interface AgenticReviewResult {
+  violations: string[];
+}
+
 export class AgenticReview {
-  public static async review(analysis: DocumentAnalysis): Promise<any> {
+  public static async review(analysis: DocumentAnalysis): Promise<AgenticReviewResult> {
     const agent = new GeminiDocumentAgent();
     const prompt = `You are a trade compliance expert. Review the following document analysis and check for any violations of trade policies, sanctions lists, and sustainability guidelines.
 

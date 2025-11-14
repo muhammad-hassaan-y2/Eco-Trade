@@ -9,7 +9,9 @@ export default function ReviewWorkflow() {
   const [reviews, setReviews] = useState<AnalysisResult[]>([])
 
   useEffect(() => {
-    setReviews(HumanReviewQueue.getQueue())
+    setTimeout(() => {
+      setReviews(HumanReviewQueue.getQueue())
+    }, 0);
   }, [])
 
   const handleRemove = (fileName: string) => {

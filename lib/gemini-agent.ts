@@ -30,7 +30,7 @@ export class GeminiDocumentAgent {
     this.model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
   }
 
-  async analyzeDocument(fileBuffer: string, mimeType: string): Promise<DocumentAnalysis> {
+  async analyzeDocument(fileContent: string | object, mimeType: string): Promise<DocumentAnalysis> {
     const prompt = `You are a customs document analysis AI agent. Analyze this document and extract structured data.
 
 Extract and return ONLY valid JSON (no markdown, no explanation) with this structure:
@@ -56,15 +56,21 @@ Extract and return ONLY valid JSON (no markdown, no explanation) with this struc
   "recommendations": ["array of actions needed"]
 }`;
 
-    const fileData = {
-      inlineData: {
-        data: fileBuffer,
-        mimeType,
-      },
-    };
+    const parts: (string | { inlineData: { data: string; mimeType: string } })[] = [prompt];
+
+    if (typeof fileContent === 'string') {
+      parts.push({
+        inlineData: {
+          data: fileContent,
+          mimeType,
+        },
+      });
+    } else {
+      parts.push(`Document: ${JSON.stringify(fileContent, null, 2)}`);
+    }
 
     try {
-      const result = await this.model.generateContent([prompt, fileData]);
+      const result = await this.model.generateContent(parts);
       const response = await result.response;
       const text = response.text();
       
@@ -156,7 +162,7 @@ Return ONLY valid JSON:
     }
   }
 
-  async classifyDocument(fileBuffer: string, mimeType: string): Promise<{ documentType: string }> {
+  async classifyDocument(fileContent: string | object, mimeType: string): Promise<{ documentType: string }> {
     const prompt = `You are an AI document classifier. Your task is to identify the type of the document from the following list:
 - Commercial Invoice
 - Packing List
@@ -169,15 +175,21 @@ Analyze the document and return ONLY a valid JSON object with the key "documentT
   "documentType": "Commercial Invoice"
 }`;
 
-    const fileData = {
-      inlineData: {
-        data: fileBuffer,
-        mimeType,
-      },
-    };
+    const parts: (string | { inlineData: { data: string; mimeType: string } })[] = [prompt];
+
+    if (typeof fileContent === 'string') {
+      parts.push({
+        inlineData: {
+          data: fileContent,
+          mimeType,
+        },
+      });
+    } else {
+      parts.push(`Document: ${JSON.stringify(fileContent, null, 2)}`);
+    }
 
     try {
-      const result = await this.model.generateContent([prompt, fileData]);
+      const result = await this.model.generateContent(parts);
       const response = await result.response;
       const text = response.text();
       
@@ -191,22 +203,22 @@ Analyze the document and return ONLY a valid JSON object with the key "documentT
     }
   }
 
-  async analyzeCommercialInvoice(fileBuffer: string, mimeType: string): Promise<DocumentAnalysis> {
-    const prompt = `You are a customs document analysis AI agent specialized in Commercial Invoices. Analyze this document and extract structured data.`;
-    return this.analyzeDocument(fileBuffer, mimeType);
+  async analyzeCommercialInvoice(fileContent: string | object, mimeType: string): Promise<DocumentAnalysis> {
+    // const prompt = `You are a customs document analysis AI agent specialized in Commercial Invoices. Analyze this document and extract structured data.`;
+    return this.analyzeDocument(fileContent, mimeType);
   }
 
-  async analyzePackingList(fileBuffer: string, mimeType: string): Promise<DocumentAnalysis> {
-    const prompt = `You are a customs document analysis AI agent specialized in Packing Lists. Analyze this document and extract structured data.`;
-    return this.analyzeDocument(fileBuffer, mimeType);
+  async analyzePackingList(fileContent: string | object, mimeType: string): Promise<DocumentAnalysis> {
+    // const prompt = `You are a customs document analysis AI agent specialized in Packing Lists. Analyze this document and extract structured data.`;
+    return this.analyzeDocument(fileContent, mimeType);
   }
 
-  async analyzeBillOfLading(fileBuffer: string, mimeType: string): Promise<DocumentAnalysis> {
-    const prompt = `You are a customs document analysis AI agent specialized in Bills of Lading. Analyze this document and extract structured data.`;
-    return this.analyzeDocument(fileBuffer, mimeType);
+  async analyzeBillOfLading(fileContent: string | object, mimeType: string): Promise<DocumentAnalysis> {
+    // const prompt = `You are a customs document analysis AI agent specialized in Bills of Lading. Analyze this document and extract structured data.`;
+    return this.analyzeDocument(fileContent, mimeType);
   }
 
-  generateContent(prompt: string): Promise<any> {
+  generateContent(prompt: string | (string | { inlineData: { data: string; mimeType: string; }; })[]): Promise<Awaited<ReturnType<typeof this.model.generateContent>>> {
     return this.model.generateContent(prompt);
   }
 }

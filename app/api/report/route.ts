@@ -1,9 +1,9 @@
 // app/api/report/route.ts
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { PDFReport } from '@/lib/pdf-report';
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
     const pdfBytes = await PDFReport.generate();
     return new NextResponse(Buffer.from(pdfBytes), {
